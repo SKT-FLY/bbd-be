@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from app.db.base import Base
 from app.db.session import engine
 from app.models import hospital, user, taxi, schedule
+from app.api.v1.endpoints import tts
 
 
 @asynccontextmanager
@@ -18,7 +19,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+api_prefix = "/api/v1"
 
-@app.get("/")
-async def hello():
-    return "Hello World"
+app.include_router(tts.router, prefix=api_prefix)
