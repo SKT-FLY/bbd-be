@@ -11,3 +11,11 @@ class User(Base):
 
     hospitals = relationship("Hospital", back_populates="user")
     schedules = relationship("Schedule", back_populates="user")
+    guardians = relationship(
+        "GuardianUser",
+        foreign_keys="[GuardianUser.guardian_id]",
+        back_populates="guardian",
+    )
+    guarded_users = relationship(
+        "GuardianUser", foreign_keys="[GuardianUser.user_id]", back_populates="user"
+    )
