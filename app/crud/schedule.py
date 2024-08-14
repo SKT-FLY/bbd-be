@@ -1,21 +1,28 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException
+from typing import List
 from app.models.hospital import Hospital
 from app.models.schedule import Schedule
 from app.models.user import User
-from app.schemas.schedule import ScheduleCreate, ScheduleUpdate
+from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleOut
+from app.models.guardianUser import GuardianUser
+
 
 async def create_schedule(db: AsyncSession, schedule: ScheduleCreate):
     user = await db.get(User, schedule.user_id)
     hospital = await db.get(Hospital, schedule.hospital_id)
-    
+
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid user_id: User does not exist")
-    
+        raise HTTPException(
+            status_code=400, detail="Invalid user_id: User does not exist"
+        )
+
     if not hospital:
-        raise HTTPException(status_code=400, detail="Invalid hospital_id: Hospital does not exist")
-    
+        raise HTTPException(
+            status_code=400, detail="Invalid hospital_id: Hospital does not exist"
+        )
+
     # Schedule 생성
     db_schedule = Schedule(**schedule.dict())
     db.add(db_schedule)
@@ -23,14 +30,15 @@ async def create_schedule(db: AsyncSession, schedule: ScheduleCreate):
     await db.refresh(db_schedule)
     return db_schedule
 
+
 async def get_schedule(db: AsyncSession, schedule_id: int):
     return await db.get(Schedule, schedule_id)
 
+
 async def get_schedules(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(
-        select(Schedule).offset(skip).limit(limit)
-    )
+    result = await db.execute(select(Schedule).offset(skip).limit(limit))
     return result.scalars().all()
+
 
 async def update_schedule(db: AsyncSession, schedule_id: int, schedule: ScheduleUpdate):
     db_schedule = await get_schedule(db, schedule_id)
@@ -42,9 +50,42 @@ async def update_schedule(db: AsyncSession, schedule_id: int, schedule: Schedule
     await db.refresh(db_schedule)
     return db_schedule
 
+
 async def delete_schedule(db: AsyncSession, schedule_id: int):
     db_schedule = await get_schedule(db, schedule_id)
     if db_schedule:
         await db.delete(db_schedule)
         await db.commit()
     return db_schedule
+
+
+async def get_guarded_user_schedules(
+    db: AsyncSession, guardian_id: int
+) -> List[ScheduleOut]:
+    result = await db.execute(
+        select(GuardianUser).filter(GuardianUser.guardian_id == guardian_id)
+    )
+    print(result)
+    guardian_relationships = result.scalars().all()
+
+    if not guardian_relationships:
+        return []
+
+    guarded_user_ids = [rel.user_id for rel in guardian_relationships]
+
+    result = await db.execute(
+        select(Schedule).filter(Schedule.user_id.in_(guarded_user_ids))
+    )
+    schedules = result.scalars().all()
+
+    return [
+        ScheduleOut(
+            schedule_id=schedule.schedule_id,
+            schedule_name=schedule.schedule_name,
+            schedule_start_time=schedule.schedule_start_time,
+            schedule_description=schedule.schedule_description,
+            user_id=schedule.user_id,
+            hospital_id=schedule.hospital_id,
+        )
+        for schedule in schedules
+    ]
