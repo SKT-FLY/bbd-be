@@ -26,6 +26,7 @@ class POI(BaseModel):
     detailBizName: Optional[str]
     frontLat: str
     frontLon: str
+    radius: Optional[str]
 
 
 class POIResponse(BaseModel):
