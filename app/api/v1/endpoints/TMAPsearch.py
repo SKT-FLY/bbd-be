@@ -39,6 +39,7 @@ async def get_pois(params: POISearchParams = Depends()):
             detailBizName=poi.get("detailBizName"),
             frontLat=poi["frontLat"],
             frontLon=poi["frontLon"],
+            radius=poi.get("radius"),
         )
         for poi in data["searchPoiInfo"]["pois"]["poi"]
     ]
