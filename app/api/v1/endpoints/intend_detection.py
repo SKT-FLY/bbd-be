@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
 import time
-from openai import OpenAI
+from openai import OpenAI, error
 from dotenv import load_dotenv
 import re
 
@@ -35,14 +35,17 @@ class TaskProcessor:
             with open(file_path, 'r', encoding='utf-8') as file:
                 tasks = file.read().splitlines()
             return tasks
-        except Exception as e:
-            print(f"tasks.txt 불러오는 도중 오류 발생: {e}")
+        except FileNotFoundError:
+            print("tasks.txt 파일을 찾을 수 없습니다.")
+            return []
+        except IOError:
+            print("파일을 읽는 중 오류가 발생했습니다.")
             return []
 
     async def korean_standardization(self, command):
         try:
+            # 메시지를 각 호출마다 새롭게 생성
             messages = [{"role": "user", "content": command}]
-
             response = self.client_standardization.chat.completions.create(
                 model=MODEL_STANDARDIZATION,
                 messages=messages + [
@@ -51,12 +54,10 @@ class TaskProcessor:
                 ],
                 temperature=0,
             )
-
             standardized_response = response.choices[0].message.content
-
             return standardized_response
         
-        except Exception as e:
+        except error.OpenAIError as e:
             print(f"표준어화하는 도중에 에러가 발생함: {e}")
             return None
 
@@ -68,12 +69,18 @@ class TaskProcessor:
             if not std_command:
                 return None, "표준화 실패"
 
+            # 메시지를 각 호출마다 새롭게 생성
             messages = [
-                {"role": "system", "content": "Q. 다음 중 고객이 원하는 것은? 만약 병원 관련된 답을 선택할 경우, 고객이 어디가 아픈지 확실하지 않다면 7번을 선택할 것."},
+                {"role": "system", "content": "Q. 다음 중 고객이 원하는 것은? 만약 병원 관련된 답을 선택할 경우, 고객이 어디가 아픈지 확실하지 않다면 7번을 선택할 것. 어딘가로 이동하고 싶은 것으로 추정된다면 8번(택시예약)이 답일 수 있음을 고려할 것."},
+                {"role": "user", "content": "내가 비염이 있는 거 같은데"},
+                {"role": "system", "content": f"{tasks_string}"},
+                {"role": "assistant", "content": "1"},
+                {"role": "user", "content": "손자네에 좀 가고 싶어서"},
+                {"role": "system", "content": f"{tasks_string}"},
+                {"role": "assistant", "content": "8"},
                 {"role": "user", "content": std_command},
                 {"role": "system", "content": f"{tasks_string}"},
-            ]
-            
+            ]            
             response = self.client_extract.chat.completions.create(
                 model=MODEL_EXTRACT,
                 messages=messages,
@@ -89,9 +96,12 @@ class TaskProcessor:
 
             return std_command, answer
 
-        except Exception as e:
+        except error.OpenAIError as e:
             print(f"요청 처리 중 오류 발생: {e}")
             return None, f"오류 발생: {e}"
+
+# 전역적으로 TaskProcessor 인스턴스를 한 번만 생성
+processor = TaskProcessor()
 
 @app.post("/process-command")
 async def process_command(request: CommandRequest):
@@ -100,7 +110,6 @@ async def process_command(request: CommandRequest):
     if not command:
         raise HTTPException(status_code=400, detail="No command provided")
     
-    processor = TaskProcessor()
     start_time = time.time()
     standardized_command, result = await processor.extract_request(command)
     end_time = time.time()
