@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -11,7 +11,7 @@ class Hospital(Base):
     hospital_phone = Column(String(20), nullable=False)
     hospital_type = Column(String(50), nullable=False)
     hospital_address = Column(String(100), nullable=False)
-    hospital_radius = Column(String(10), nullable=False)
+    hospital_radius = Column(Float, nullable=False)
     visits_count = Column(Integer, nullable=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
 
