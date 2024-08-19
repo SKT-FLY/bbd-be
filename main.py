@@ -3,7 +3,14 @@ from contextlib import asynccontextmanager
 from app.db.base import Base
 from app.db.session import engine
 from app.models import hospital, user, taxi, schedule
-from app.api.v1.endpoints import tts, schedule, TMAPsearch, hospitals,taxi_search
+from app.api.v1.endpoints import (
+    tts,
+    schedule,
+    TMAPsearch,
+    hospitals,
+    taxi_search,
+    intend_detection,
+)
 
 
 @asynccontextmanager
@@ -26,3 +33,4 @@ app.include_router(schedule.router, prefix=api_prefix, tags=["schedules"])
 app.include_router(TMAPsearch.router, prefix=api_prefix, tags=["TMAP"])
 app.include_router(hospitals.router, prefix=api_prefix, tags=["hospitals"])
 app.include_router(taxi_search.router, prefix=api_prefix, tags=["TMAP"])
+app.include_router(intend_detection.router, prefix=api_prefix, tags=["intend"])
