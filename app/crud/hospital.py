@@ -4,15 +4,20 @@ from app.models.hospital import Hospital
 from app.schemas.hospital import HospitalUpdate
 
 
-async def get_hospitals(db: AsyncSession):
-    result = await db.execute(select(Hospital))
+async def get_hospitals(user_id: int, db: AsyncSession):
+    result = await db.execute(select(Hospital).filter(Hospital.user_id == user_id))
     hospitals = result.scalars().all()
     return hospitals
 
 
-async def update_or_create_hospital(hospital_data: HospitalUpdate, db: AsyncSession):
+async def update_or_create_hospital(
+    hospital_data: HospitalUpdate, user_id: int, db: AsyncSession
+):
     result = await db.execute(
-        select(Hospital).filter(Hospital.hospital_id == hospital_data.hospital_id)
+        select(Hospital).filter(
+            Hospital.hospital_id == hospital_data.hospital_id,
+            Hospital.user_id == user_id,
+        )
     )
     hospital = result.scalars().first()
 
@@ -30,7 +35,7 @@ async def update_or_create_hospital(hospital_data: HospitalUpdate, db: AsyncSess
             hospital_address=hospital_data.hospital_address,
             hospital_radius=hospital_data.hospital_radius,
             visits_count=1,
-            user_id=hospital_data.user_id,
+            user_id=user_id,  # user_id 설정
         )
         db.add(hospital)
 

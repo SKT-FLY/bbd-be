@@ -12,12 +12,12 @@ router = APIRouter()
 
 
 @router.get("/hospitals", response_model=List[HospitalOut])
-async def get_hospitals(db: AsyncSession = Depends(get_db)):
-    return await crud_get_hospitals(db)
+async def get_hospitals(user_id: int, db: AsyncSession = Depends(get_db)):
+    return await crud_get_hospitals(user_id, db)
 
 
 @router.post("/hospitals/update_visits_count", response_model=HospitalOut)
 async def update_or_create_hospital(
-    hospital_data: HospitalUpdate, db: AsyncSession = Depends(get_db)
+    hospital_data: HospitalUpdate, user_id: int, db: AsyncSession = Depends(get_db)
 ):
-    return await crud_update_or_create_hospital(hospital_data, db)
+    return await crud_update_or_create_hospital(hospital_data, user_id, db)
