@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.db.base import Base
 from app.db.session import engine
-from app.models import hospital, user, taxi, schedule, text
+from app.models import hospital, user, taxi, schedule, text, result_messages
 from app.api.v1.endpoints import (
     tts,
     schedule,
