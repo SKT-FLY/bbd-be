@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from fastapi import HTTPException
 from app.models.taxi import Taxi
+from app.models.user import User
 
 
 def extract_location_part(address: str) -> str:
@@ -18,11 +20,23 @@ def extract_location_part(address: str) -> str:
     return None  # 해당하는 부분이 없으면 None 반환
 
 
-async def find_matching_taxi(db: AsyncSession, address: str, user_type: int) -> dict:
+async def find_matching_taxi(db: AsyncSession, address: str, user_id: int) -> dict:
+    # user_id로 데이터베이스에서 user_type을 조회
+    user_stmt = select(User).filter(User.user_id == user_id)
+    user_result = await db.execute(user_stmt)
+    user = user_result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    user_type = user.user_type  # user_type을 가져옵니다.
+
+    # 주소에서 적절한 부분 추출
     location_part = extract_location_part(address)
     if not location_part:
         return {}
 
+    # 택시 정보 조회
     stmt = select(Taxi).filter(Taxi.taxi_location.like(f"%{location_part}%"))
     result = await db.execute(stmt)
     matching_taxis = result.scalars().all()
