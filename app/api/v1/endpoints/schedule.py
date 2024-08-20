@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional, Union
+from datetime import datetime
 
 from app.schemas.schedule import ScheduleCreate, ScheduleOut, ScheduleUpdate
 from app.crud.schedule import (
@@ -10,6 +11,7 @@ from app.crud.schedule import (
     update_schedule,
     delete_schedule,
     get_guarded_user_schedules,
+    get_schedules_by_date_and_user,
 )
 from app.db.session import get_db
 
@@ -69,4 +71,16 @@ async def read_guarded_user_schedules(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No schedules found for the guarded users.",
         )
+    return schedules
+
+
+@router.get(
+    "/schedules/date/{date}", response_model=Optional[Union[List[ScheduleOut], dict]]
+)
+async def read_schedules_by_date(
+    date: datetime, user_id: int, db: AsyncSession = Depends(get_db)
+):
+    schedules = await get_schedules_by_date_and_user(db, date, user_id)
+    if not schedules:
+        return {"message": "일정이 없습니다"}
     return schedules

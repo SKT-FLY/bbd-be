@@ -11,7 +11,5 @@ class Schedule(Base):
     schedule_start_time = Column(DateTime, nullable=False)
     schedule_description = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
-    hospital_id = Column(Integer, ForeignKey("hospital.hospital_id"), nullable=False)
 
     user = relationship("User", back_populates="schedules")
-    hospital = relationship("Hospital", back_populates="schedules")

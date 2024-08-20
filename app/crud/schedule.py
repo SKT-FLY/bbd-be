@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from datetime import datetime
 from fastapi import HTTPException
 from typing import List
-from app.models.hospital import Hospital
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleOut
@@ -11,16 +11,10 @@ from app.models.guardianUser import GuardianUser
 
 async def create_schedule(db: AsyncSession, schedule: ScheduleCreate):
     user = await db.get(User, schedule.user_id)
-    hospital = await db.get(Hospital, schedule.hospital_id)
 
     if not user:
         raise HTTPException(
             status_code=400, detail="Invalid user_id: User does not exist"
-        )
-
-    if not hospital:
-        raise HTTPException(
-            status_code=400, detail="Invalid hospital_id: Hospital does not exist"
         )
 
     # Schedule 생성
@@ -65,7 +59,6 @@ async def get_guarded_user_schedules(
     result = await db.execute(
         select(GuardianUser).filter(GuardianUser.guardian_id == guardian_id)
     )
-    print(result)
     guardian_relationships = result.scalars().all()
 
     if not guardian_relationships:
@@ -85,7 +78,22 @@ async def get_guarded_user_schedules(
             schedule_start_time=schedule.schedule_start_time,
             schedule_description=schedule.schedule_description,
             user_id=schedule.user_id,
-            hospital_id=schedule.hospital_id,
         )
         for schedule in schedules
     ]
+
+
+async def get_schedules_by_date_and_user(
+    db: AsyncSession, date: datetime, user_id: int
+) -> List[Schedule]:
+    start_of_day = datetime.combine(date.date(), datetime.min.time())
+    end_of_day = datetime.combine(date.date(), datetime.max.time())
+
+    result = await db.execute(
+        select(Schedule).where(
+            Schedule.user_id == user_id,
+            Schedule.schedule_start_time >= start_of_day,
+            Schedule.schedule_start_time <= end_of_day,
+        )
+    )
+    return result.scalars().all()

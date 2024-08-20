@@ -16,4 +16,3 @@ class Hospital(Base):
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
 
     user = relationship("User", back_populates="hospitals")
-    schedules = relationship("Schedule", back_populates="hospital")
