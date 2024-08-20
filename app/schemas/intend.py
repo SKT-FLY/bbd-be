@@ -9,9 +9,4 @@ class CommandRequest(BaseModel):
 class CommandResponseData(BaseModel):
     standardized_command: str
     result: str
-
-
-class CommandResponse(BaseModel):
-    success: bool
-    data: Optional[CommandResponseData] = None
-    error: Optional[str] = None
+    message: str
