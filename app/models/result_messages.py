@@ -8,3 +8,4 @@ class ResultMessage(Base):
     id = Column(Integer, primary_key=True, index=True)
     result = Column(String, unique=True, index=True)
     message = Column(String)
+    audio_data = Column(String)
