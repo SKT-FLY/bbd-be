@@ -9,8 +9,8 @@ from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleOut
 from app.models.guardianUser import GuardianUser
 
 
-async def create_schedule(db: AsyncSession, schedule: ScheduleCreate):
-    user = await db.get(User, schedule.user_id)
+async def create_schedule(db: AsyncSession, schedule: ScheduleCreate, user_id: int):
+    user = await db.get(User, user_id)
 
     if not user:
         raise HTTPException(
@@ -18,24 +18,33 @@ async def create_schedule(db: AsyncSession, schedule: ScheduleCreate):
         )
 
     # Schedule 생성
-    db_schedule = Schedule(**schedule.dict())
+    db_schedule = Schedule(**schedule.dict(), user_id=user_id)
     db.add(db_schedule)
     await db.commit()
     await db.refresh(db_schedule)
     return db_schedule
 
 
-async def get_schedule(db: AsyncSession, schedule_id: int):
-    return await db.get(Schedule, schedule_id)
+async def get_schedule(db: AsyncSession, schedule_id: int, user_id: int):
+    result = await db.execute(
+        select(Schedule).where(
+            Schedule.schedule_id == schedule_id, Schedule.user_id == user_id
+        )
+    )
+    return result.scalars().first()
 
 
-async def get_schedules(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(Schedule).offset(skip).limit(limit))
+async def get_schedules(db: AsyncSession, user_id: int, skip: int = 0, limit: int = 10):
+    result = await db.execute(
+        select(Schedule).where(Schedule.user_id == user_id).offset(skip).limit(limit)
+    )
     return result.scalars().all()
 
 
-async def update_schedule(db: AsyncSession, schedule_id: int, schedule: ScheduleUpdate):
-    db_schedule = await get_schedule(db, schedule_id)
+async def update_schedule(
+    db: AsyncSession, schedule_id: int, user_id: int, schedule: ScheduleUpdate
+):
+    db_schedule = await get_schedule(db, schedule_id, user_id)
     if not db_schedule:
         return None
     for key, value in schedule.dict(exclude_unset=True).items():
@@ -45,8 +54,8 @@ async def update_schedule(db: AsyncSession, schedule_id: int, schedule: Schedule
     return db_schedule
 
 
-async def delete_schedule(db: AsyncSession, schedule_id: int):
-    db_schedule = await get_schedule(db, schedule_id)
+async def delete_schedule(db: AsyncSession, schedule_id: int, user_id: int):
+    db_schedule = await get_schedule(db, schedule_id, user_id)
     if db_schedule:
         await db.delete(db_schedule)
         await db.commit()

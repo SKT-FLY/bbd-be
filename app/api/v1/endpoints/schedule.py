@@ -21,14 +21,16 @@ router = APIRouter()
 
 @router.post("/schedule", response_model=ScheduleOut)
 async def create_new_schedule(
-    schedule: ScheduleCreate, db: AsyncSession = Depends(get_db)
+    schedule: ScheduleCreate, user_id: int, db: AsyncSession = Depends(get_db)
 ):
-    return await create_schedule(db, schedule)
+    return await create_schedule(db, schedule, user_id)
 
 
 @router.get("/schedule/{schedule_id}", response_model=ScheduleOut)
-async def read_schedule(schedule_id: int, db: AsyncSession = Depends(get_db)):
-    db_schedule = await get_schedule(db, schedule_id)
+async def read_schedule(
+    schedule_id: int, user_id: int, db: AsyncSession = Depends(get_db)
+):
+    db_schedule = await get_schedule(db, schedule_id, user_id)
     if not db_schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     return db_schedule
@@ -36,16 +38,19 @@ async def read_schedule(schedule_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/schedule", response_model=List[ScheduleOut])
 async def read_schedules(
-    skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)
+    user_id: int, skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)
 ):
-    return await get_schedules(db, skip=skip, limit=limit)
+    return await get_schedules(db, user_id=user_id, skip=skip, limit=limit)
 
 
 @router.put("/schedule/{schedule_id}", response_model=ScheduleOut)
 async def update_existing_schedule(
-    schedule_id: int, schedule: ScheduleUpdate, db: AsyncSession = Depends(get_db)
+    schedule_id: int,
+    user_id: int,
+    schedule: ScheduleUpdate,
+    db: AsyncSession = Depends(get_db),
 ):
-    db_schedule = await update_schedule(db, schedule_id, schedule)
+    db_schedule = await update_schedule(db, schedule_id, user_id, schedule)
     if not db_schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     return db_schedule
@@ -53,9 +58,9 @@ async def update_existing_schedule(
 
 @router.delete("/schedule/{schedule_id}", response_model=ScheduleOut)
 async def delete_existing_schedule(
-    schedule_id: int, db: AsyncSession = Depends(get_db)
+    schedule_id: int, user_id: int, db: AsyncSession = Depends(get_db)
 ):
-    db_schedule = await delete_schedule(db, schedule_id)
+    db_schedule = await delete_schedule(db, schedule_id, user_id)
     if not db_schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     return db_schedule
