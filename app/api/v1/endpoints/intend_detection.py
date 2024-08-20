@@ -132,18 +132,20 @@ async def process_command(request: CommandRequest, db: AsyncSession = Depends(ge
     if standardized_command is None:
         raise HTTPException(status_code=500, detail=result)
 
-    # CRUD 함수를 비동기적으로 호출할 때 await 추가
     result_message = await get_message_by_result(db, result)
 
     if not result_message:
         result_message_text = "Result message not found"
+        result_url = ""
     else:
         result_message_text = result_message.message
+        result_url = result_message.audio_data  # URL 가져오기
 
     response_data = CommandResponseData(
         standardized_command=standardized_command,
         result=result,
         message=result_message_text,
+        url=result_url,  # URL 추가
     )
 
     return response_data
