@@ -15,13 +15,13 @@ class HospitalOut(BaseModel):
 
 
 class HospitalUpdate(BaseModel):
+    user_id: int
     hospital_id: int
     hospital_name: str
     hospital_phone: str
     hospital_type: str
     hospital_address: str
     hospital_radius: str
-    user_id: int
 
     class Config:
         orm_mode = True
