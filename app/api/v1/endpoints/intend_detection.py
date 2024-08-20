@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import re
-from app.schemas.intend import CommandRequest, CommandResponse, CommandResponseData
+from app.schemas.intend import CommandRequest, CommandResponseData
+from app.crud.result import get_message_by_result
+from app.db.session import get_db
 
 
 router = APIRouter()
@@ -89,7 +92,7 @@ class TaskProcessor:
                 {"role": "assistant", "content": "1"},
                 {"role": "user", "content": "손자네에 좀 가고 싶어서"},
                 {"role": "system", "content": f"{tasks_string}"},
-                {"role": "assistant", "content": "8"},
+                {"role": "assistant", "content": "9"},
                 {"role": "user", "content": std_command},
                 {"role": "system", "content": f"{tasks_string}"},
             ]
@@ -118,7 +121,7 @@ processor = TaskProcessor()
 
 
 @router.post("/process-command")
-async def process_command(request: CommandRequest):
+async def process_command(request: CommandRequest, db: AsyncSession = Depends(get_db)):
     command = request.command
 
     if not command:
@@ -127,13 +130,20 @@ async def process_command(request: CommandRequest):
     standardized_command, result = await processor.extract_request(command)
 
     if standardized_command is None:
-        response = CommandResponse(success=False, error=result)
-    else:
-        response = CommandResponse(
-            success=True,
-            data=CommandResponseData(
-                standardized_command=standardized_command, result=result
-            ),
-        )
+        raise HTTPException(status_code=500, detail=result)
 
-    return response
+    # CRUD 함수를 비동기적으로 호출할 때 await 추가
+    result_message = await get_message_by_result(db, result)
+
+    if not result_message:
+        result_message_text = "Result message not found"
+    else:
+        result_message_text = result_message.message
+
+    response_data = CommandResponseData(
+        standardized_command=standardized_command,
+        result=result,
+        message=result_message_text,
+    )
+
+    return response_data
