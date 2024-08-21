@@ -77,7 +77,7 @@ class TaskProcessor:
                 [f"{i+1}. {item}" for i, item in enumerate(self.tasks.tasks)]
             )
             std_command = await self.korean_standardization(command)
-
+            # print(std_command)
             if not std_command:
                 return None, "표준화 실패"
 
@@ -85,7 +85,7 @@ class TaskProcessor:
             messages = [
                 {
                     "role": "system",
-                    "content": "Q. 다음 중 고객이 원하는 것은? 만약 병원 관련된 답을 선택할 경우, 고객이 어디가 아픈지 확실하지 않다면 7번을 선택할 것. 어딘가로 이동하고 싶은 것으로 추정된다면 8번(택시예약)이 답일 수 있음을 고려할 것.",
+                    "content": "Q. 다음 중 고객이 원하는 것은? 만약 병원 관련된 답을 선택할 경우, 고객이 어디가 아픈지 확실하지 않다면 8번을 선택할 것. 어딘가로 이동하고 싶은 것으로 추정된다면 9번(택시예약)이 답일 수 있음을 고려할 것.",
                 },
                 {"role": "user", "content": "내가 비염이 있는 거 같은데"},
                 {"role": "system", "content": f"{tasks_string}"},
