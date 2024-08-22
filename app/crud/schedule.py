@@ -56,9 +56,11 @@ async def update_schedule(
 
 async def delete_schedule(db: AsyncSession, schedule_id: int, user_id: int):
     db_schedule = await get_schedule(db, schedule_id, user_id)
-    if db_schedule:
-        await db.delete(db_schedule)
-        await db.commit()
+    if not db_schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+
+    await db.delete(db_schedule)
+    await db.commit()
     return db_schedule
 
 
