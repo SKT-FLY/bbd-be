@@ -21,7 +21,7 @@ class HospitalUpdate(BaseModel):
     hospital_phone: str
     hospital_type: str
     hospital_address: str
-    hospital_radius: str
+    hospital_radius: float
 
     class Config:
         orm_mode = True

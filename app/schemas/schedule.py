@@ -7,7 +7,6 @@ class ScheduleCreate(BaseModel):
     schedule_name: str
     schedule_start_time: datetime
     schedule_description: Optional[str]
-    user_id: int
 
 
 class ScheduleUpdate(BaseModel):
