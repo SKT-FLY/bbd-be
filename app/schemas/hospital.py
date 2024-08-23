@@ -7,7 +7,8 @@ class HospitalOut(BaseModel):
     hospital_phone: str
     hospital_type: str
     hospital_address: str
-    hospital_radius: str
+    hospital_centerLat: float
+    hospital_centerLon: float
     visits_count: int
 
     class Config:
@@ -21,7 +22,8 @@ class HospitalUpdate(BaseModel):
     hospital_phone: str
     hospital_type: str
     hospital_address: str
-    hospital_radius: float
+    hospital_centerLat: float
+    hospital_centerLon: float
 
     class Config:
         orm_mode = True

@@ -11,7 +11,8 @@ class Hospital(Base):
     hospital_phone = Column(String(20), nullable=False)
     hospital_type = Column(String(50), nullable=False)
     hospital_address = Column(String(100), nullable=False)
-    hospital_radius = Column(Float, nullable=False)
+    hospital_centerLat = Column(Float, nullable=False)
+    hospital_centerLon = Column(Float, nullable=False)
     visits_count = Column(Integer, nullable=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
 
