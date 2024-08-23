@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     taxi_search,
     intend_detection,
     audio,
+    analyzed_message,
 )
 
 UPLOAD_DIRECTORY = "uploaded_files"
@@ -40,4 +41,5 @@ app.include_router(TMAPsearch.router, prefix=api_prefix, tags=["TMAP"])
 app.include_router(hospitals.router, prefix=api_prefix, tags=["hospitals"])
 app.include_router(taxi_search.router, prefix=api_prefix, tags=["TMAP"])
 app.include_router(intend_detection.router, prefix=api_prefix, tags=["intend"])
+app.include_router(analyzed_message.router, prefix=api_prefix, tags=["text"])
 app.include_router(audio.router, prefix=api_prefix)
