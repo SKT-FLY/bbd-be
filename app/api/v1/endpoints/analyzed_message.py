@@ -24,5 +24,7 @@ async def analyze_and_forward(request: MessageRequest):
                 detail="External API request failed",
             )
 
-        # 응답을 받아서 클라이언트에 그대로 반환
-        return response.json()
+        response_data = response.json()
+
+        # JSON 응답을 Pydantic 모델로 직접 변환하여 반환
+        return MessageResponse.parse_obj(response_data)
