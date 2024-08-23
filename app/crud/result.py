@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.result_messages import ResultMessage
+from app.models.user import User
 
 
 async def get_message_by_result(db: AsyncSession, result: str) -> ResultMessage:
