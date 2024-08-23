@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class MessageRequest(BaseModel):
@@ -6,8 +7,7 @@ class MessageRequest(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    source: str
-    date: str
-    message_type: str
-    reason: str
-    summary: str
+    source: Optional[str]
+    date: Optional[str]
+    message_type: Optional[str]
+    summary: Optional[str]
