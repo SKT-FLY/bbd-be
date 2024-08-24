@@ -22,3 +22,5 @@ class User(Base):
     guarded_users = relationship(
         "GuardianUser", foreign_keys="[GuardianUser.user_id]", back_populates="user"
     )
+
+    result_messages = relationship("ResultMessage", back_populates="user")
