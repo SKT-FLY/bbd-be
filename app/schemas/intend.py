@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class CommandRequest(BaseModel):
+    user_id: int
     command: str
 
 
