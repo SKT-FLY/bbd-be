@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union
 from datetime import datetime
+import os
+import httpx
+from dotenv import load_dotenv
 
-from app.schemas.schedule import ScheduleCreate, ScheduleOut, ScheduleUpdate
+from app.schemas.schedule import ScheduleCreate, ScheduleOut, ScheduleUpdate, VoiceIn
 from app.crud.schedule import (
     create_schedule,
     get_schedule,
@@ -89,3 +92,42 @@ async def read_schedules_by_date(
     if not schedules:
         return {"message": "일정이 없습니다"}
     return schedules
+
+
+load_dotenv()
+
+VOICESCHEDULE_API = os.getenv("VOICESCHEDULE_API")
+
+
+@router.post("/voice_scedule", response_model=ScheduleCreate)
+async def analyze_and_forward(request: VoiceIn):
+    if not VOICESCHEDULE_API:
+        raise HTTPException(
+            status_code=500,
+            detail="TEXT_API URL is not set in the environment variables.",
+        )
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # 외부 API에 POST 요청 보내기
+            response = await client.post(VOICESCHEDULE_API, json=request.dict())
+            response.raise_for_status()  # HTTP 에러가 발생하면 예외를 발생시킴
+        except httpx.HTTPStatusError as exc:
+            raise HTTPException(
+                status_code=exc.response.status_code,
+                detail=f"External API request failed: {exc.response.text}",
+            )
+
+        response_data = response.json()
+
+        # API 응답 데이터를 ScheduleCreate 모델에 맞게 변환
+        schedule_data = {
+            "schedule_name": response_data[
+                "description"
+            ],  # 예시로 VoiceIn의 message 필드를 schedule_name에 매핑
+            "schedule_start_time": response_data["when"],
+            "schedule_description": request.message,
+        }
+
+        # JSON 응답을 ScheduleCreate 모델로 직접 변환하여 반환
+        return ScheduleCreate(**schedule_data)
