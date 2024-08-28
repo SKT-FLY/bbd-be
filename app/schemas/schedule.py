@@ -24,3 +24,7 @@ class ScheduleOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class VoiceIn(BaseModel):
+    message: str
