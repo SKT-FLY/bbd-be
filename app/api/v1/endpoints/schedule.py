@@ -99,7 +99,7 @@ load_dotenv()
 VOICESCHEDULE_API = os.getenv("VOICESCHEDULE_API")
 
 
-@router.post("/voice_scedule", response_model=ScheduleCreate)
+@router.post("/voice_schedule", response_model=ScheduleCreate)
 async def analyze_and_forward(request: VoiceIn):
     if not VOICESCHEDULE_API:
         raise HTTPException(
