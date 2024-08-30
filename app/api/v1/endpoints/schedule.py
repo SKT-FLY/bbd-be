@@ -41,7 +41,7 @@ async def read_schedule(
 
 @router.get("/schedule", response_model=List[ScheduleOut])
 async def read_schedules(
-    user_id: int, skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)
+    user_id: int, skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
 ):
     return await get_schedules(db, user_id=user_id, skip=skip, limit=limit)
 

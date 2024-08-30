@@ -60,6 +60,15 @@
 
 
 # 화면 구성
+***의도 추출***
+![Project Logo](img/3.png)
+***문자 분석***
+![Project Logo](img/4.png)
+***개인화된 정보탐색***
+![Project Logo](img/5.png)
+***일정처리 자동화***
+![Project Logo](img/6.png)
+
 
 # System Architecture
 ![Project Logo](img/1.png)
